@@ -202,6 +202,137 @@ HEADER;
 
 ---
 
+## 4. Sensor Operators & Timeouts
+
+This section explains how to prevent Airflow tasks from getting stuck, including Redshift tasks, Python operators, and all sensors.
+
+---
+
+## 4.1 Execution Timeout (Recommended for ALL Tasks)
+
+Use `execution_timeout` to ensure no task runs forever.
+
+```python
+from datetime import timedelta
+
+RedshiftDataOperator(
+    task_id="query_data",
+    execution_timeout=timedelta(minutes=10),
+    ...
+)
+```
+
+💡 If a SQL query or Python callable hangs, Airflow **automatically fails** the task.
+
+---
+
+## 4.2 Sensor Timeout (Recommended for ALL Sensors)
+
+Sensors support the following timeout options:
+
+* `timeout`: Maximum time before the sensor fails
+* `poke_interval`: How often the sensor checks the condition
+* `mode`: "poke" or "reschedule"
+* `soft_fail`: If true → task marks **SKIPPED** instead of FAILED
+
+### Example
+
+```python
+S3KeySensor(
+    task_id="wait_for_file",
+    bucket_name="my-bucket",
+    bucket_key="input/data.csv",
+    poke_interval=30,
+    timeout=600,
+    mode="poke",
+    soft_fail=False
+)
+```
+
+---
+
+## 4.3 All Common AWS Sensors (Amazon Provider)
+
+Below are the most frequently used sensors with timeouts:
+
+### **S3 Sensors**
+
+* `S3KeySensor`
+* `S3PrefixSensor`
+* `S3KeysUnchangedSensor`
+
+### **Redshift Sensors**
+
+* `RedshiftClusterSensor`
+* `RedshiftSnapshotSensor`
+* `RedshiftClusterAvailableSensor`
+
+### **Glue Sensors**
+
+* `GlueJobSensor`
+* `GlueCrawlerSensor`
+
+### **EMR Sensors**
+
+* `EmrStepSensor`
+* `EmrJobFlowSensor`
+
+### **Athena Sensor**
+
+* `AthenaSensor`
+
+### **DynamoDB Sensor**
+
+* `DynamoDBValueSensor`
+
+All of these support:
+
+```python
+timeout=600
+poke_interval=30
+mode="poke" or "reschedule"
+```
+
+---
+
+## 4.4 DAG-Level Default Timeout & Retry Settings
+
+Add to your DAG's `default_args`:
+
+```python
+from datetime import timedelta
+
+default_args = {
+    "execution_timeout": timedelta(minutes=20),
+    "retries": 2,
+    "retry_delay": timedelta(minutes=2),
+    "retry_exponential_backoff": True,
+}
+```
+
+---
+
+## 4.5 Recommended Safe Defaults for Your Redshift DAG
+
+### For Sensor Tasks
+
+```python
+timeout=600      # Max 10 minutes
+poke_interval=30
+```
+
+### For Redshift SQL Tasks
+
+```python
+execution_timeout=timedelta(minutes=15)
+```
+
+These prevent stuck or long-running SQL queries.
+
+---
+
 ## 4. Summary
 
 This guide provides a ready-to-use Airflow implementation for all common Redshift Serverless SQL operations. Use it as a reference or plug it directly into your project.
+
+If you want a **modular version**, **Jinja-templated SQL**, or **production folder structure**, let me know!
