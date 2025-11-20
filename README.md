@@ -1,2 +1,2 @@
-# Airflow - Redshift_Serverless
-#### All redhsift operations via airflow
+# Airflow - Redshift Serverless
+#### All redhsift operations via airflow dag
