@@ -205,5 +205,3 @@ HEADER;
 ## 4. Summary
 
 This guide provides a ready-to-use Airflow implementation for all common Redshift Serverless SQL operations. Use it as a reference or plug it directly into your project.
-
-If you want a **modular version**, **Jinja-templated SQL**, or **production folder structure**, let me know!
